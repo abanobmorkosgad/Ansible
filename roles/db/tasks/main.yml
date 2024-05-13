@@ -1,0 +1,46 @@
+- name: Install MariaDB
+  apt:
+    pkg: 
+    - mariadb-server
+    - pip
+    state: present
+  
+- name: Make sure pymysql is present
+  pip:
+    name: pymysql
+    state: present
+
+- name: Start MariaDB Service
+  sysvinit:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: mysql_root_password 
+  mysql_user: 
+    login_user: root 
+    login_password: "{{ root_db_password }}" 
+    user: root 
+    check_implicit_admin: true 
+    password: "{{ root_db_password }}" 
+    host: localhost 
+
+- name: Create Database
+  mysql_db:
+    name: "{{db_name}}"
+    login_user: root
+    login_password: "{{root_db_password}}"
+    state: present
+
+- name: Create User
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ user_db_password }}"
+    priv: "{{ db_name }}.*:ALL"
+    state: present
+    host: localhost
+    login_user: root
+    login_password: "{{ root_db_password }}"
+  notify: Restart MariaDB
+
+  
